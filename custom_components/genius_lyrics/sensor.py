@@ -117,18 +117,20 @@ class GeniusLyricsSensor(SensorEntity):
 
     def _fetch_lyrics(self) -> bool:
         if self._media_artist is None or self._media_title is None:
-            _LOGGER.error("Cannot fetch lyrics without artist and title")
-            return
+            _LOGGER.debug(
+             f"Cannot fetch lyrics without artist:'{self._media_artist}' or title: '{self._media_title}'"
+            )
+        return
 
         # clean song title to increase chance and accuracy of a result
         cleaned_title = clean_song_title(self._media_title)
         if cleaned_title != self._media_title:
-            _LOGGER.info(
+            _LOGGER.debug(
                 f'Media title was cleaned: "{self._media_title}"  ->  "{cleaned_title}"'
             )
             self._media_title = cleaned_title
 
-        _LOGGER.info(
+        _LOGGER.debug(
             f"Searching lyrics for artist='{self._media_artist}' and title='{self._media_title}'"
         )
 
@@ -141,7 +143,7 @@ class GeniusLyricsSensor(SensorEntity):
         if not song and " - " in self._media_title:
             # aggressively truncate title from the first hyphen
             self._media_title = self._media_title.split(" - ", 1)[0]
-            _LOGGER.info(
+            _LOGGER.debug(
                 f"Second attempt, aggressively cleaned title='{self._media_title}'"
             )
 
@@ -189,11 +191,11 @@ class GeniusLyricsSensor(SensorEntity):
             try:
                 self._fetch_lyrics()
             except Timeout:
-                _LOGGER.error(
+                _LOGGER.warning(
                     f"Timeout fetching lyrics ({self._genius.retries} retries)"
                 )
             except (HTTPError, RequestsConnectionError) as e:
-                _LOGGER.error(
+                _LOGGER.warning(
                     f"Error fetching lyrics ({self._genius.retries} retries), err: {e.strerror}"
                 )
             else:
@@ -269,11 +271,11 @@ async def async_setup_entry(
     startup_event = asyncio.Event()
 
     async def startup_callback(event):
-        _LOGGER.info("Home Assistant is started..loading sensors")
+        _LOGGER.debug("Home Assistant is started..loading sensors")
         startup_event.set()  # set the event to signal that Home Assistant is started
 
     if hass.state == CoreState.starting:
-        _LOGGER.info("Waiting for HomeAssistant to start before loading sensors")
+        _LOGGER.debug("Waiting for HomeAssistant to start before loading sensors")
         hass.bus.async_listen(EVENT_HOMEASSISTANT_STARTED, startup_callback)
         await startup_event.wait()
 
