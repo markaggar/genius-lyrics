@@ -235,7 +235,7 @@ class GeniusLyricsSensor(SensorEntity):
         # TODO: need to check duration? new_state.attributes.get(ATTR_MEDIA_DURATION)
 
         # bail if media title has not changed
-        old_title = old_state.attributes.get(ATTR_MEDIA_TITLE)
+        old_title = old_state.attributes.get(ATTR_MEDIA_TITLE) if old_state else None
         new_title = new_state.attributes.get(ATTR_MEDIA_TITLE)
         _LOGGER.debug(
             f"_media_title: {self._media_title}, "
